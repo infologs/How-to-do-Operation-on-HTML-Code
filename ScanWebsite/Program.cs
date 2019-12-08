@@ -65,10 +65,14 @@ namespace ScanWebsite
                         {
                             string filename = item1.Attributes["src"].Value;
 
+                            string fileExtension = Path.GetExtension(filename);
+
                             string[] data = filename.Split("../..");
 
-                            DownloadImage(domainURL +  data[1], Guid.NewGuid().ToString() + ".png");
-                            item1.Attributes["src"].Value = "../images/" + Guid.NewGuid().ToString() + ".png";
+                            string cusfilename = Guid.NewGuid().ToString();
+
+                            DownloadImage(domainURL +  data[1], cusfilename + fileExtension);
+                            item1.Attributes["src"].Value = "../images/" + cusfilename + fileExtension;
                         }
 
                     }
@@ -135,8 +139,11 @@ namespace ScanWebsite
                         foreach (var item1 in images)
                         {
                             string filename = Path.GetFileName(item1.Attributes["src"].Value);
-                            DownloadImage(item1.Attributes["src"].Value, Guid.NewGuid().ToString() + ".png");
-                            item1.Attributes["src"].Value = "../images/" + Guid.NewGuid().ToString() + ".png";
+                            string cusfilename = Guid.NewGuid().ToString();
+                            string fileExtension = Path.GetExtension(filename);
+
+                            DownloadImage(item1.Attributes["src"].Value, cusfilename + fileExtension);
+                            item1.Attributes["src"].Value = "../images/" + cusfilename + fileExtension;
                         }
 
                     }

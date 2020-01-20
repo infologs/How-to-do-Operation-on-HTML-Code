@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 
 namespace ScanWebsite
 {
@@ -20,9 +21,13 @@ namespace ScanWebsite
 
         private static void DownloadTutorialTech()
         {
+
+            string PART = "/linq/linq-tutorials/";
+            string CONTAINS = "linq";
+
             var html = new HtmlDocument();
             
-            html.LoadHtml(new WebClient().DownloadString(domainURL + "/core/"));
+            html.LoadHtml(new WebClient().DownloadString(domainURL + PART));
 
            
 
@@ -41,7 +46,7 @@ namespace ScanWebsite
 
             foreach (var item in anchors)
             {
-                if (item.Attributes["href"] != null && item.Attributes["href"].Value.ToLower().Contains("core"))
+                if (item.Attributes["href"] != null && item.Attributes["href"].Value.ToLower().Contains(CONTAINS))
                 {
 
                     string s = item.InnerText;
@@ -50,7 +55,14 @@ namespace ScanWebsite
                     articleDoc.LoadHtml(new WebClient().DownloadString(domainURL + item.Attributes["href"].Value));
 
                     HtmlNodeCollection article = articleDoc.DocumentNode.SelectNodes("//article");
-
+                    if(article == null)
+                    {
+                        article = articleDoc.DocumentNode.SelectNodes("//div[@class='article']");
+                    }
+                    if(article == null)
+                    {
+                        break;
+                    }
                     string fullBody = article[0].InnerHtml;
 
 
@@ -65,19 +77,20 @@ namespace ScanWebsite
                         {
                             string filename = item1.Attributes["src"].Value;
 
-                            string fileExtension = Path.GetExtension(filename);
-
                             string[] data = filename.Split("../..");
-
-                            string cusfilename = Guid.NewGuid().ToString();
-
-                            DownloadImage(domainURL +  data[1], cusfilename + fileExtension);
-                            item1.Attributes["src"].Value = "../images/" + cusfilename + fileExtension;
+                            if (data.Length > 1)
+                            {
+                                DownloadImage(domainURL + data[1], Guid.NewGuid().ToString() + ".png");
+                                item1.Attributes["src"].Value = "../images/" + Guid.NewGuid().ToString() + ".png";
+                            }
                         }
 
                     }
 
-                    using (StreamWriter outputFile = new StreamWriter(Path.Combine(Path.GetFullPath("Articles"), s + ".html"), true))
+                    s = s.Replace("/", "_");
+
+                    string path = Path.Combine(Path.GetFullPath("Articles"), s + ".html");                    
+                    using (StreamWriter outputFile = new StreamWriter(path, true))
                     {
                         outputFile.WriteLine(_checkforImage.DocumentNode.InnerHtml);
                     }
@@ -139,11 +152,8 @@ namespace ScanWebsite
                         foreach (var item1 in images)
                         {
                             string filename = Path.GetFileName(item1.Attributes["src"].Value);
-                            string cusfilename = Guid.NewGuid().ToString();
-                            string fileExtension = Path.GetExtension(filename);
-
-                            DownloadImage(item1.Attributes["src"].Value, cusfilename + fileExtension);
-                            item1.Attributes["src"].Value = "../images/" + cusfilename + fileExtension;
+                            DownloadImage(item1.Attributes["src"].Value, Guid.NewGuid().ToString() + ".png");
+                            item1.Attributes["src"].Value = "../images/" + Guid.NewGuid().ToString() + ".png";
                         }
 
                     }
@@ -179,8 +189,7 @@ namespace ScanWebsite
                  string[] array = name.Split("?");
                 
                  webClient.DownloadFile(filePath, "images\\" + array[0]);
-                
-                
+                                
             }
 
         }
